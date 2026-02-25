@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Shield, LayoutDashboard, Settings, LogOut, Plus } from 'lucide-react';
+import { Shield, LayoutDashboard, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { mockUser } from '@/data/mock';
 
@@ -13,12 +13,12 @@ export function AppLayout({ children }: AppLayoutProps) {
   const isOps = location.pathname.startsWith('/ops');
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background dot-pattern">
       {/* Header */}
-      <header className="gradient-navy border-b border-navy-light sticky top-0 z-50">
+      <header className="glass-dark border-b border-white/10 sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/20">
+          <Link to="/dashboard" className="flex items-center gap-2.5 group">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/20 group-hover:bg-accent/30 transition-colors">
               <Shield className="h-5 w-5 text-gold" />
             </div>
             <span className="text-lg font-bold text-white tracking-tight">
@@ -31,7 +31,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className={`text-white/70 hover:text-white hover:bg-white/10 ${location.pathname === '/dashboard' ? 'bg-white/10 text-white' : ''}`}
+                className={`text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-all ${location.pathname === '/dashboard' ? 'bg-white/10 text-white' : ''}`}
               >
                 <LayoutDashboard className="h-4 w-4 mr-1.5" />
                 Portal
@@ -41,21 +41,21 @@ export function AppLayout({ children }: AppLayoutProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className={`text-white/70 hover:text-white hover:bg-white/10 ${isOps ? 'bg-white/10 text-white' : ''}`}
+                className={`text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-all ${isOps ? 'bg-white/10 text-white' : ''}`}
               >
                 <Settings className="h-4 w-4 mr-1.5" />
                 Operaciones
               </Button>
             </Link>
-            <div className="ml-3 pl-3 border-l border-white/20 flex items-center gap-3">
+            <div className="ml-3 pl-3 border-l border-white/10 flex items-center gap-3">
               <div className="text-right hidden sm:block">
                 <p className="text-xs font-medium text-white">{mockUser.name}</p>
-                <p className="text-xs text-white/50">{mockUser.company}</p>
+                <p className="text-xs text-white/40">{mockUser.company}</p>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-white/50 hover:text-white hover:bg-white/10"
+                className="text-white/40 hover:text-white hover:bg-white/10 rounded-xl"
                 onClick={() => navigate('/')}
               >
                 <LogOut className="h-4 w-4" />
@@ -66,7 +66,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       </header>
 
       {/* Main */}
-      <main className="container py-6 animate-fade-in">
+      <main className="container py-8 animate-fade-in">
         {children}
       </main>
     </div>

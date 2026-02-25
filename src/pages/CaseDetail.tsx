@@ -25,7 +25,7 @@ export default function CaseDetail() {
       <AppLayout>
         <div className="text-center py-16">
           <p className="text-muted-foreground">Caso no encontrado</p>
-          <Button variant="outline" className="mt-4" onClick={() => navigate('/dashboard')}>Volver al dashboard</Button>
+          <Button variant="outline" className="mt-4 rounded-xl" onClick={() => navigate('/dashboard')}>Volver al dashboard</Button>
         </div>
       </AppLayout>
     );
@@ -38,38 +38,38 @@ export default function CaseDetail() {
 
   return (
     <AppLayout>
-      <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
-        <ArrowLeft className="h-4 w-4" /> Regresar
+      <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors group">
+        <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" /> Regresar
       </button>
 
       {/* Case Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <span className="text-sm font-mono text-muted-foreground">{caseData.id}</span>
             <StatusBadge status={caseData.status} size="lg" />
           </div>
-          <h1 className="text-xl font-bold text-foreground">{caseData.title}</h1>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">{caseData.title}</h1>
           <p className="text-sm text-muted-foreground mt-1">{caseData.description}</p>
         </div>
         <AmountDisplay amountUSD={caseData.amountUSD} amountMXN={caseData.amountMXN} size="lg" />
       </div>
 
       {/* Parties */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <Card className="shadow-card">
-          <CardContent className="p-4">
-            <p className="text-xs font-medium text-muted-foreground mb-1">Comprador</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
+        <Card className="shadow-card border-border/50 rounded-2xl hover:shadow-card-hover transition-all duration-300">
+          <CardContent className="p-5">
+            <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">Comprador</p>
             <p className="text-sm font-semibold text-foreground">{caseData.buyer.name}</p>
-            <p className="text-xs text-muted-foreground">{caseData.buyer.company}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{caseData.buyer.company}</p>
             <p className="text-xs text-muted-foreground">{caseData.buyer.email}</p>
           </CardContent>
         </Card>
-        <Card className="shadow-card">
-          <CardContent className="p-4">
-            <p className="text-xs font-medium text-muted-foreground mb-1">Vendedor</p>
+        <Card className="shadow-card border-border/50 rounded-2xl hover:shadow-card-hover transition-all duration-300">
+          <CardContent className="p-5">
+            <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">Vendedor</p>
             <p className="text-sm font-semibold text-foreground">{caseData.seller.name}</p>
-            <p className="text-xs text-muted-foreground">{caseData.seller.company}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{caseData.seller.company}</p>
             <p className="text-xs text-muted-foreground">{caseData.seller.email}</p>
           </CardContent>
         </Card>
@@ -77,40 +77,40 @@ export default function CaseDetail() {
 
       {/* Actions */}
       {caseData.status === 'AWAITING_ACCEPTANCE' && (
-        <Card className="shadow-card mb-6 border-status-awaiting/30">
-          <CardContent className="p-4 flex items-center justify-between">
+        <Card className="mb-6 border-status-awaiting/20 bg-status-awaiting/5 rounded-2xl">
+          <CardContent className="p-5 flex items-center justify-between">
             <p className="text-sm font-medium">Este caso espera aceptación de la contraparte</p>
-            <Button onClick={() => handleAction('accept')} disabled={actionLoading === 'accept'} className="gradient-gold text-primary font-semibold hover:opacity-90">
+            <Button onClick={() => handleAction('accept')} disabled={actionLoading === 'accept'} className="gradient-gold text-white font-semibold hover:opacity-90 rounded-xl shadow-glow">
               {actionLoading === 'accept' ? 'Procesando...' : 'Aceptar términos'}
             </Button>
           </CardContent>
         </Card>
       )}
       {caseData.status === 'AWAITING_FUNDING_USDC' && (
-        <Card className="shadow-card mb-6 border-status-funding/30">
-          <CardContent className="p-4 flex items-center justify-between">
+        <Card className="mb-6 border-status-funding/20 bg-status-funding/5 rounded-2xl">
+          <CardContent className="p-5 flex items-center justify-between">
             <p className="text-sm font-medium">Se requiere confirmar el fondeo USDC</p>
-            <Button onClick={() => handleAction('fund')} disabled={actionLoading === 'fund'} className="gradient-gold text-primary font-semibold hover:opacity-90">
+            <Button onClick={() => handleAction('fund')} disabled={actionLoading === 'fund'} className="gradient-gold text-white font-semibold hover:opacity-90 rounded-xl shadow-glow">
               {actionLoading === 'fund' ? 'Procesando...' : 'Confirmar fondeo USDC'}
             </Button>
           </CardContent>
         </Card>
       )}
       {caseData.status === 'IN_ESCROW' && (
-        <Card className="shadow-card mb-6 border-status-dispute/30">
-          <CardContent className="p-4 flex items-center justify-between">
+        <Card className="mb-6 border-status-dispute/20 bg-status-dispute/5 rounded-2xl">
+          <CardContent className="p-5 flex items-center justify-between">
             <p className="text-sm font-medium">Fondos en escrow — puedes abrir una disputa si es necesario</p>
-            <Button variant="destructive" onClick={() => setDisputeOpen(true)}>
+            <Button variant="destructive" onClick={() => setDisputeOpen(true)} className="rounded-xl">
               <AlertTriangle className="h-4 w-4 mr-1.5" /> Abrir disputa
             </Button>
           </CardContent>
         </Card>
       )}
       {caseData.status === 'READY_TO_RELEASE' && (
-        <Card className="shadow-card mb-6 border-status-ready/30">
-          <CardContent className="p-4 flex items-center justify-between">
+        <Card className="mb-6 border-status-ready/20 bg-status-ready/5 rounded-2xl">
+          <CardContent className="p-5 flex items-center justify-between">
             <p className="text-sm font-medium">Caso listo para liquidación</p>
-            <Button onClick={() => handleAction('release')} disabled={actionLoading === 'release'} className="gradient-gold text-primary font-semibold hover:opacity-90">
+            <Button onClick={() => handleAction('release')} disabled={actionLoading === 'release'} className="gradient-gold text-white font-semibold hover:opacity-90 rounded-xl shadow-glow">
               {actionLoading === 'release' ? 'Ejecutando...' : 'Ejecutar liquidación'}
             </Button>
           </CardContent>
@@ -119,9 +119,9 @@ export default function CaseDetail() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Timeline */}
-        <Card className="shadow-card">
+        <Card className="shadow-card border-border/50 rounded-2xl">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Historial del caso</CardTitle>
+            <CardTitle className="text-base font-semibold">Historial del caso</CardTitle>
           </CardHeader>
           <CardContent>
             <CaseTimeline events={mockEvents} />
@@ -129,10 +129,10 @@ export default function CaseDetail() {
         </Card>
 
         {/* Documents */}
-        <Card className="shadow-card">
+        <Card className="shadow-card border-border/50 rounded-2xl">
           <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Documentos</CardTitle>
-            <Button variant="outline" size="sm">
+            <CardTitle className="text-base font-semibold">Documentos</CardTitle>
+            <Button variant="outline" size="sm" className="rounded-lg">
               <Upload className="h-3.5 w-3.5 mr-1.5" /> Subir
             </Button>
           </CardHeader>
@@ -145,7 +145,7 @@ export default function CaseDetail() {
             ) : (
               <div className="space-y-2">
                 {mockDocuments.map(doc => (
-                  <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg border border-border text-sm">
+                  <div key={doc.id} className="flex items-center justify-between p-3 rounded-xl border border-border/50 text-sm hover:bg-muted/50 transition-colors">
                     <div className="min-w-0">
                       <p className="font-medium text-foreground truncate">{doc.name}</p>
                       <p className="text-xs text-muted-foreground">
@@ -160,9 +160,9 @@ export default function CaseDetail() {
         </Card>
 
         {/* XRPL Transactions */}
-        <Card className="shadow-card">
+        <Card className="shadow-card border-border/50 rounded-2xl">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Transacciones XRPL</CardTitle>
+            <CardTitle className="text-base font-semibold">Transacciones XRPL</CardTitle>
           </CardHeader>
           <CardContent>
             {mockXrplTxs.length === 0 ? (
@@ -170,7 +170,7 @@ export default function CaseDetail() {
             ) : (
               <div className="space-y-2">
                 {mockXrplTxs.map(tx => (
-                  <div key={tx.hash} className="p-3 rounded-lg border border-border text-sm">
+                  <div key={tx.hash} className="p-3 rounded-xl border border-border/50 text-sm hover:bg-muted/50 transition-colors">
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium text-foreground">{tx.type}</span>
                       <span className={`text-xs font-medium ${tx.status === 'SUCCESS' ? 'text-status-released' : 'text-status-awaiting'}`}>
@@ -194,9 +194,9 @@ export default function CaseDetail() {
         </Card>
 
         {/* PSP / Funds */}
-        <Card className="shadow-card">
+        <Card className="shadow-card border-border/50 rounded-2xl">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">PSP / Fondos</CardTitle>
+            <CardTitle className="text-base font-semibold">PSP / Fondos</CardTitle>
           </CardHeader>
           <CardContent>
             {mockPspEntries.length === 0 ? (
@@ -204,7 +204,7 @@ export default function CaseDetail() {
             ) : (
               <div className="space-y-2">
                 {mockPspEntries.map(entry => (
-                  <div key={entry.id} className="flex items-center justify-between p-3 rounded-lg border border-border text-sm">
+                  <div key={entry.id} className="flex items-center justify-between p-3 rounded-xl border border-border/50 text-sm hover:bg-muted/50 transition-colors">
                     <div>
                       <p className="font-medium text-foreground">{entry.type}</p>
                       <p className="text-xs text-muted-foreground">{entry.reference}</p>
@@ -225,7 +225,7 @@ export default function CaseDetail() {
 
       {/* Dispute Dialog */}
       <Dialog open={disputeOpen} onOpenChange={setDisputeOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-2xl">
           <DialogHeader>
             <DialogTitle>Abrir disputa</DialogTitle>
             <DialogDescription>Describe la razón por la cual deseas abrir una disputa. Se asignará un árbitro ICC.</DialogDescription>
@@ -233,11 +233,11 @@ export default function CaseDetail() {
           <div className="space-y-3 mt-2">
             <div className="space-y-1.5">
               <Label>Razón de la disputa</Label>
-              <Textarea value={disputeReason} onChange={e => setDisputeReason(e.target.value)} placeholder="Describe el problema..." rows={4} />
+              <Textarea value={disputeReason} onChange={e => setDisputeReason(e.target.value)} placeholder="Describe el problema..." rows={4} className="rounded-xl" />
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDisputeOpen(false)}>Cancelar</Button>
-              <Button variant="destructive" onClick={() => { handleAction('dispute'); setDisputeOpen(false); }} disabled={!disputeReason.trim()}>
+              <Button variant="outline" onClick={() => setDisputeOpen(false)} className="rounded-xl">Cancelar</Button>
+              <Button variant="destructive" onClick={() => { handleAction('dispute'); setDisputeOpen(false); }} disabled={!disputeReason.trim()} className="rounded-xl">
                 Confirmar disputa
               </Button>
             </div>
