@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Plus, Briefcase, AlertTriangle, Clock, TrendingUp } from 'lucide-react';
+import { Plus, Briefcase, Clock, TrendingUp, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AppLayout } from '@/components/AppLayout';
@@ -18,13 +18,13 @@ export default function Dashboard() {
   return (
     <AppLayout>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Portal del Cliente</h1>
-          <p className="text-sm text-muted-foreground">Gestiona tus casos de escrow</p>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Portal del Cliente</h1>
+          <p className="text-sm text-muted-foreground mt-1">Gestiona tus casos de escrow</p>
         </div>
         <Link to="/cases/new">
-          <Button className="gradient-gold text-primary font-semibold hover:opacity-90 transition-opacity">
+          <Button className="gradient-gold text-white font-semibold hover:opacity-90 transition-all rounded-xl shadow-glow">
             <Plus className="h-4 w-4 mr-1.5" />
             Nuevo Caso de Escrow
           </Button>
@@ -32,52 +32,49 @@ export default function Dashboard() {
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <Card className="shadow-card">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+        <Card className="shadow-card hover:shadow-card-hover transition-all duration-300 border-border/50 rounded-2xl overflow-hidden group">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 group-hover:bg-accent/15 transition-colors">
                 <Briefcase className="h-5 w-5 text-accent" />
               </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{activeCases.length}</p>
-                <p className="text-xs text-muted-foreground">Casos activos</p>
-              </div>
+              <ArrowUpRight className="h-4 w-4 text-muted-foreground/40" />
             </div>
+            <p className="text-3xl font-bold text-foreground tracking-tight">{activeCases.length}</p>
+            <p className="text-sm text-muted-foreground mt-1">Casos activos</p>
           </CardContent>
         </Card>
-        <Card className="shadow-card">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10">
+        <Card className="shadow-card hover:shadow-card-hover transition-all duration-300 border-border/50 rounded-2xl overflow-hidden group">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 group-hover:bg-accent/15 transition-colors">
                 <TrendingUp className="h-5 w-5 text-accent" />
               </div>
-              <div>
-                <p className="text-lg font-bold text-foreground">{formatCurrency(totalInEscrow, 'USD')}</p>
-                <p className="text-xs text-muted-foreground">≈ {formatCurrency(totalInEscrowMXN, 'MXN')} en escrow</p>
-              </div>
+              <ArrowUpRight className="h-4 w-4 text-muted-foreground/40" />
             </div>
+            <p className="text-2xl font-bold text-foreground tracking-tight">{formatCurrency(totalInEscrow, 'USD')}</p>
+            <p className="text-sm text-muted-foreground mt-1">≈ {formatCurrency(totalInEscrowMXN, 'MXN')} en escrow</p>
           </CardContent>
         </Card>
-        <Card className="shadow-card">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10">
+        <Card className="shadow-card hover:shadow-card-hover transition-all duration-300 border-border/50 rounded-2xl overflow-hidden group">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 group-hover:bg-accent/15 transition-colors">
                 <Clock className="h-5 w-5 text-accent" />
               </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{pendingAction}</p>
-                <p className="text-xs text-muted-foreground">Pendientes de acción</p>
-              </div>
+              <ArrowUpRight className="h-4 w-4 text-muted-foreground/40" />
             </div>
+            <p className="text-3xl font-bold text-foreground tracking-tight">{pendingAction}</p>
+            <p className="text-sm text-muted-foreground mt-1">Pendientes de acción</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Cases List */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Mis Casos</CardTitle>
+      <Card className="shadow-card border-border/50 rounded-2xl">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold">Mis Casos</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -85,20 +82,23 @@ export default function Dashboard() {
               <Link
                 key={c.id}
                 to={`/cases/${c.id}`}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border border-border hover:shadow-card-hover hover:border-accent/30 transition-all animate-fade-in"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-border/50 hover:shadow-card-hover hover:border-accent/20 transition-all duration-300 animate-fade-in group"
                 style={{ animationDelay: `${i * 50}ms` }}
               >
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1.5">
                     <span className="text-xs font-mono text-muted-foreground">{c.id}</span>
                     <StatusBadge status={c.status} size="sm" />
                   </div>
-                  <p className="text-sm font-medium text-foreground truncate">{c.title}</p>
+                  <p className="text-sm font-medium text-foreground truncate group-hover:text-accent transition-colors">{c.title}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     Contraparte: {c.seller.company} — {formatDateMX(c.createdAt)}
                   </p>
                 </div>
-                <AmountDisplay amountUSD={c.amountUSD} amountMXN={c.amountMXN} />
+                <div className="flex items-center gap-3">
+                  <AmountDisplay amountUSD={c.amountUSD} amountMXN={c.amountMXN} />
+                  <ArrowUpRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-accent transition-colors hidden sm:block" />
+                </div>
               </Link>
             ))}
           </div>
