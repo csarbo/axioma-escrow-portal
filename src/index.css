@@ -6,16 +6,16 @@
 
 @layer base {
   :root {
-    --background: 220 25% 97%;
-    --foreground: 222 47% 11%;
+    --background: 210 20% 98%;
+    --foreground: 240 20% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 240 20% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 240 20% 10%;
 
-    --primary: 222 47% 11%;
+    --primary: 222 65% 15%;
     --primary-foreground: 0 0% 98%;
 
     --secondary: 220 14% 96%;
@@ -24,7 +24,7 @@
     --muted: 220 14% 96%;
     --muted-foreground: 220 9% 46%;
 
-    --accent: 170 32% 50%;
+    --accent: 43 55% 54%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
@@ -32,63 +32,38 @@
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 170 32% 50%;
+    --ring: 43 55% 54%;
 
     --radius: 0.75rem;
 
     /* Custom tokens */
-    --gold: 170 32% 50%;
-    --gold-light: 170 28% 64%;
-    --gold-dark: 170 32% 38%;
-    --navy: 222 47% 11%;
-    --navy-light: 222 35% 20%;
-    --navy-lighter: 222 25% 32%;
-
-    /* Glow */
-    --glow-accent: 170 60% 60%;
+    --gold: 43 55% 54%;
+    --gold-light: 43 45% 68%;
+    --gold-dark: 43 60% 42%;
+    --navy: 222 65% 15%;
+    --navy-light: 222 45% 22%;
+    --navy-lighter: 222 30% 35%;
 
     /* Status colors */
     --status-draft: 220 10% 60%;
     --status-awaiting: 40 90% 50%;
     --status-funding: 30 90% 55%;
     --status-escrow: 210 80% 50%;
-    --status-dispute: 0 72% 51%;
+    --status-dispute: 0 65% 55%;
     --status-arbitration: 0 60% 35%;
     --status-ready: 140 60% 45%;
     --status-released: 140 70% 38%;
     --status-cancelled: 220 10% 40%;
     --status-exception: 0 85% 45%;
 
-    --sidebar-background: 222 47% 8%;
+    --sidebar-background: 222 65% 10%;
     --sidebar-foreground: 220 20% 85%;
-    --sidebar-primary: 170 32% 50%;
+    --sidebar-primary: 43 55% 54%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 222 35% 16%;
+    --sidebar-accent: 222 45% 18%;
     --sidebar-accent-foreground: 220 20% 85%;
-    --sidebar-border: 222 35% 16%;
-    --sidebar-ring: 170 32% 50%;
-  }
-
-  .dark {
-    --background: 222 47% 6%;
-    --foreground: 220 20% 92%;
-    --card: 222 40% 10%;
-    --card-foreground: 220 20% 92%;
-    --popover: 222 40% 10%;
-    --popover-foreground: 220 20% 92%;
-    --primary: 170 32% 50%;
-    --primary-foreground: 222 47% 8%;
-    --secondary: 222 35% 16%;
-    --secondary-foreground: 220 20% 92%;
-    --muted: 222 35% 16%;
-    --muted-foreground: 220 15% 55%;
-    --accent: 170 32% 50%;
-    --accent-foreground: 222 47% 8%;
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 222 35% 16%;
-    --input: 222 35% 16%;
-    --ring: 170 32% 50%;
+    --sidebar-border: 222 45% 18%;
+    --sidebar-ring: 43 55% 54%;
   }
 }
 
@@ -105,42 +80,23 @@
 
 @layer utilities {
   .gradient-navy {
-    background: linear-gradient(135deg, hsl(222, 47%, 11%), hsl(222, 35%, 18%));
+    background: linear-gradient(135deg, hsl(222, 65%, 15%), hsl(222, 45%, 22%));
   }
   
   .gradient-gold {
-    background: linear-gradient(135deg, hsl(170, 32%, 45%), hsl(170, 38%, 55%));
-  }
-
-  .gradient-mesh {
-    background: 
-      radial-gradient(ellipse at 20% 50%, hsl(170, 32%, 50% / 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, hsl(222, 47%, 30% / 0.06) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 80%, hsl(170, 32%, 60% / 0.04) 0%, transparent 50%);
+    background: linear-gradient(135deg, hsl(43, 55%, 50%), hsl(43, 60%, 58%));
   }
 
   .gradient-hero {
-    background: linear-gradient(160deg, hsl(222, 47%, 8%) 0%, hsl(222, 40%, 14%) 50%, hsl(222, 35%, 18%) 100%);
+    background: linear-gradient(160deg, hsl(222, 65%, 10%) 0%, hsl(222, 50%, 16%) 50%, hsl(222, 40%, 20%) 100%);
   }
 
   .text-gold {
-    color: hsl(170, 32%, 50%);
+    color: hsl(43, 55%, 54%);
   }
 
   .border-gold {
-    border-color: hsl(170, 32%, 50%);
-  }
-
-  .glass {
-    background: hsl(0 0% 100% / 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
-
-  .glass-dark {
-    background: hsl(222 47% 11% / 0.6);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    border-color: hsl(43, 55%, 54%);
   }
 
   .shadow-card {
@@ -152,11 +108,6 @@
   }
 
   .shadow-glow {
-    box-shadow: 0 0 20px -5px hsl(170, 32%, 50% / 0.25);
-  }
-
-  .dot-pattern {
-    background-image: radial-gradient(circle, hsl(222, 47%, 11% / 0.04) 1px, transparent 1px);
-    background-size: 24px 24px;
+    box-shadow: 0 0 20px -5px hsl(43, 55%, 54% / 0.3);
   }
 }

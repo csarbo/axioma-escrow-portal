@@ -1,180 +1,207 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, AlertTriangle, TrendingUp, CheckCircle, Search, Filter, ArrowUpRight } from 'lucide-react';
+import { Shield, TrendingUp, FileText, CheckCircle2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AppLayout } from '@/components/AppLayout';
 import { StatusBadge } from '@/components/StatusBadge';
-import { mockCases, formatDateMX, formatCurrency } from '@/data/mock';
-import { CaseStatus, STATUS_CONFIG } from '@/types/case';
+import { useApp } from '@/context/AppContext';
+import { formatMXN, formatUSD, CaseStatus, getRequiredDocs } from '@/types/case';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export default function OpsDashboard() {
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [search, setSearch] = useState('');
+  const { cases, updateCaseStatus, addTimelineEvent, validateDocument } = useApp();
+  const { toast } = useToast();
+  const [statusFilter, setStatusFilter] = useState<CaseStatus | 'ALL'>('ALL');
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
-  const filtered = mockCases.filter(c => {
-    if (statusFilter !== 'all' && c.status !== statusFilter) return false;
-    if (search && !c.title.toLowerCase().includes(search.toLowerCase()) && !c.id.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
+  const totalEscrow = cases.filter(c => c.status === 'IN_ESCROW').reduce((s, c) => s + c.montoMxn, 0);
+  const totalEscrowUsd = cases.filter(c => c.status === 'IN_ESCROW').reduce((s, c) => s + c.montoUsd, 0);
+  const activeCases = cases.filter(c => !['RELEASED', 'CANCELLED'].includes(c.status)).length;
+  const pendingDocs = cases.reduce((count, c) => {
+    return count + c.documents.filter(d => d.status === 'UPLOADED').length;
+  }, 0);
+  const completados = cases.filter(c => c.status === 'RELEASED').length;
 
-  const activeCases = mockCases.filter(c => !['RELEASED', 'CANCELLED'].includes(c.status));
-  const totalInEscrow = activeCases.reduce((s, c) => s + c.amountUSD, 0);
-  const disputeCases = mockCases.filter(c => ['DISPUTE_OPEN', 'ARBITRATION_PENDING'].includes(c.status));
-  const releasedThisMonth = mockCases.filter(c => c.status === 'RELEASED');
-  const exceptionCases = mockCases.filter(c => c.status === 'EXCEPTION');
+  const filtered = statusFilter === 'ALL' ? cases : cases.filter(c => c.status === statusFilter);
+
+  const doAction = (caseId: string, action: () => void) => {
+    setLoadingAction(caseId);
+    setTimeout(() => { action(); setLoadingAction(null); }, 1200);
+  };
+
+  const confirmSpei = (caseId: string) => {
+    doAction(caseId, () => {
+      updateCaseStatus(caseId, 'IN_ESCROW');
+      addTimelineEvent(caseId, { date: new Date().toISOString().replace('T', ' ').substring(0, 16), event: 'SPEI confirmado por Axioma — Garantía activada', icon: '🔒' });
+      toast({ title: 'SPEI confirmado', description: 'Garantía activada correctamente.' });
+    });
+  };
+
+  const executePayment = (c: typeof cases[0]) => {
+    doAction(c.id, () => {
+      updateCaseStatus(c.id, 'RELEASED');
+      addTimelineEvent(c.id, { date: new Date().toISOString().replace('T', ' ').substring(0, 16), event: `Pago ejecutado — ${formatUSD(c.montoUsd)} enviados a ${c.sellerCountry}`, icon: '✓' });
+      toast({ title: 'Pago ejecutado', description: `${formatUSD(c.montoUsd)} enviados al vendedor.` });
+    });
+  };
+
+  const getDocCount = (c: typeof cases[0]) => {
+    const req = getRequiredDocs(c.incoterm).length;
+    const done = c.documents.filter(d => ['UPLOADED', 'VALIDATED'].includes(d.status)).length;
+    return { done, total: req };
+  };
+
+  const statuses: (CaseStatus | 'ALL')[] = ['ALL', 'AWAITING_FUNDING', 'IN_ESCROW', 'READY_TO_RELEASE', 'RELEASED', 'DISPUTE_OPEN'];
 
   return (
     <AppLayout>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">Panel de Operaciones</h1>
-        <p className="text-sm text-muted-foreground mt-1">Vista general de todos los casos</p>
+      <h1 className="text-2xl font-bold text-foreground mb-6">Panel de Operaciones</h1>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {[
+          { label: 'Total en garantía', value: formatMXN(totalEscrow), sub: formatUSD(totalEscrowUsd), icon: Shield, color: 'text-status-escrow' },
+          { label: 'Casos activos', value: activeCases.toString(), icon: TrendingUp, color: 'text-accent' },
+          { label: 'Docs pendientes', value: pendingDocs.toString(), icon: FileText, color: 'text-status-funding', badge: pendingDocs > 0 },
+          { label: 'Completados', value: completados.toString(), icon: CheckCircle2, color: 'text-status-released' },
+        ].map(m => (
+          <Card key={m.label} className="shadow-card">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-2">
+                <m.icon className={`h-5 w-5 ${m.color}`} />
+                {m.badge && <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" />}
+              </div>
+              <p className="text-2xl font-bold text-foreground">{m.value}</p>
+              {m.sub && <p className="text-xs text-muted-foreground">{m.sub}</p>}
+              <p className="text-xs text-muted-foreground">{m.label}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Metrics */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        <Card className="shadow-card hover:shadow-card-hover transition-all duration-300 border-border/50 rounded-2xl group">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 group-hover:bg-accent/15 transition-colors">
-                <TrendingUp className="h-4 w-4 text-accent" />
-              </div>
-              <ArrowUpRight className="h-4 w-4 text-muted-foreground/30" />
-            </div>
-            <p className="text-xl font-bold text-foreground">{formatCurrency(totalInEscrow, 'USD')}</p>
-            <p className="text-xs text-muted-foreground mt-1">Total en escrow</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card hover:shadow-card-hover transition-all duration-300 border-border/50 rounded-2xl group">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 group-hover:bg-accent/15 transition-colors">
-                <Briefcase className="h-4 w-4 text-accent" />
-              </div>
-              <ArrowUpRight className="h-4 w-4 text-muted-foreground/30" />
-            </div>
-            <p className="text-xl font-bold text-foreground">{activeCases.length}</p>
-            <p className="text-xs text-muted-foreground mt-1">Casos activos</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card hover:shadow-card-hover transition-all duration-300 border-border/50 rounded-2xl group">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/10">
-                <AlertTriangle className="h-4 w-4 text-destructive" />
-              </div>
-              <ArrowUpRight className="h-4 w-4 text-muted-foreground/30" />
-            </div>
-            <p className="text-xl font-bold text-foreground">{disputeCases.length}</p>
-            <p className="text-xs text-muted-foreground mt-1">En disputa</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card hover:shadow-card-hover transition-all duration-300 border-border/50 rounded-2xl group">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-status-released/10">
-                <CheckCircle className="h-4 w-4 text-status-released" />
-              </div>
-              <ArrowUpRight className="h-4 w-4 text-muted-foreground/30" />
-            </div>
-            <p className="text-xl font-bold text-foreground">{releasedThisMonth.length}</p>
-            <p className="text-xs text-muted-foreground mt-1">Liberados</p>
-          </CardContent>
-        </Card>
+      <div className="flex gap-2 mb-4 flex-wrap">
+        {statuses.map(s => (
+          <Button key={s} variant={statusFilter === s ? 'default' : 'outline'} size="sm"
+            onClick={() => setStatusFilter(s)} className={statusFilter === s ? 'gradient-gold text-white' : ''}>
+            {s === 'ALL' ? 'Todos' : s.replace(/_/g, ' ').toLowerCase()}
+          </Button>
+        ))}
       </div>
 
-      {/* Exception Alert */}
-      {exceptionCases.length > 0 && (
-        <Card className="mb-6 border-destructive/20 bg-destructive/5 rounded-2xl">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-destructive/10 shrink-0">
-              <AlertTriangle className="h-4 w-4 text-destructive" />
-            </div>
-            <p className="text-sm font-medium text-destructive">
-              {exceptionCases.length} caso(s) en estado de excepción requieren atención inmediata
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Filters */}
-      <Card className="shadow-card border-border/50 rounded-2xl">
-        <CardHeader className="pb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <CardTitle className="text-lg font-semibold">Todos los Casos</CardTitle>
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1 sm:w-56">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por ID o título..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="pl-9 h-9 text-sm rounded-xl"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-48 h-9 text-sm rounded-xl">
-                  <Filter className="h-3.5 w-3.5 mr-1.5" />
-                  <SelectValue placeholder="Estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los estados</SelectItem>
-                  {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                    <SelectItem key={key} value={key}>{cfg.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {filtered.length === 0 ? (
-            <div className="text-center py-16 text-sm text-muted-foreground">
-              No se encontraron casos con los filtros aplicados
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border/50 text-left">
-                    <th className="pb-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">ID</th>
-                    <th className="pb-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Comprador</th>
-                    <th className="pb-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Vendedor</th>
-                    <th className="pb-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Monto</th>
-                    <th className="pb-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Estado</th>
-                    <th className="pb-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Fecha</th>
-                    <th className="pb-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Acciones</th>
+      <Card className="shadow-card">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-muted/50">
+                <th className="text-left p-3 font-medium text-muted-foreground">Folio</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Comprador</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Vendedor</th>
+                <th className="text-right p-3 font-medium text-muted-foreground">Monto</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Docs</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Estado</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(c => {
+                const docs = getDocCount(c);
+                const isException = c.status === 'EXCEPTION' || c.status === 'DISPUTE_OPEN';
+                return (
+                  <tr key={c.id} className={`border-b border-border hover:bg-muted/30 transition-colors ${isException ? 'bg-destructive/5' : ''}`}>
+                    <td className="p-3 font-mono font-medium">
+                      <Link to={`/cases/${c.id}`} className="text-accent hover:underline">{c.id}</Link>
+                    </td>
+                    <td className="p-3 text-foreground">{c.buyer}</td>
+                    <td className="p-3 text-foreground">{c.seller}</td>
+                    <td className="p-3 text-right">
+                      <span className="font-medium text-foreground">{formatMXN(c.montoMxn)}</span>
+                      <br /><span className="text-xs text-muted-foreground">{formatUSD(c.montoUsd)}</span>
+                    </td>
+                    <td className="p-3">
+                      <span className={`text-xs px-2 py-0.5 rounded ${docs.done === docs.total ? 'bg-status-released/20 text-status-released' : 'bg-muted text-muted-foreground'}`}>
+                        {docs.done}/{docs.total} docs
+                      </span>
+                    </td>
+                    <td className="p-3"><StatusBadge status={c.status} /></td>
+                    <td className="p-3 space-x-1">
+                      {c.status === 'AWAITING_FUNDING' && (
+                        <Button size="sm" variant="outline" onClick={() => confirmSpei(c.id)} disabled={loadingAction === c.id} className="text-xs">
+                          {loadingAction === c.id ? '...' : 'Confirmar SPEI'}
+                        </Button>
+                      )}
+                      {c.status === 'IN_ESCROW' && c.documents.some(d => d.status === 'UPLOADED') && (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button size="sm" variant="outline" className="text-xs">Validar docs</Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Validar documentos — {c.id}</DialogTitle>
+                              <DialogDescription>Revisa y aprueba o rechaza cada documento.</DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-3">
+                              {c.documents.filter(d => d.status === 'UPLOADED').map(d => (
+                                <div key={d.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                                  <div className="flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-muted-foreground" />
+                                    <div>
+                                      <p className="text-sm font-medium">{d.name}</p>
+                                      <p className="text-xs text-muted-foreground">{d.type}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-1">
+                                    <Button size="sm" variant="outline" className="text-xs text-status-released border-status-released/30"
+                                      onClick={() => { validateDocument(c.id, d.id, true); toast({ title: 'Documento aprobado' }); }}>
+                                      ✓ Aprobar
+                                    </Button>
+                                    <Button size="sm" variant="outline" className="text-xs text-destructive border-destructive/30"
+                                      onClick={() => { validateDocument(c.id, d.id, false); toast({ title: 'Documento rechazado' }); }}>
+                                      ✗ Rechazar
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                      {c.status === 'READY_TO_RELEASE' && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="destructive" className="text-xs">
+                              Ejecutar pago {formatUSD(c.montoUsd)}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>¿Ejecutar pago?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Se enviarán {formatUSD(c.montoUsd)} al vendedor ({c.seller}). Esta acción es irreversible.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => executePayment(c)} className="bg-destructive text-white">
+                                Confirmar pago
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((c, i) => (
-                    <tr
-                      key={c.id}
-                      className={`border-b border-border/30 last:border-0 animate-fade-in hover:bg-muted/50 transition-colors ${
-                        ['DISPUTE_OPEN', 'EXCEPTION'].includes(c.status) ? 'bg-destructive/5' : ''
-                      }`}
-                      style={{ animationDelay: `${i * 30}ms` }}
-                    >
-                      <td className="py-3.5 font-mono text-xs">{c.id}</td>
-                      <td className="py-3.5">{c.buyer.company}</td>
-                      <td className="py-3.5">{c.seller.company}</td>
-                      <td className="py-3.5 font-medium">{formatCurrency(c.amountUSD, 'USD')}</td>
-                      <td className="py-3.5"><StatusBadge status={c.status} size="sm" /></td>
-                      <td className="py-3.5 text-muted-foreground">{formatDateMX(c.createdAt)}</td>
-                      <td className="py-3.5">
-                        <Link to={`/cases/${c.id}`}>
-                          <Button variant="outline" size="sm" className="h-7 text-xs rounded-lg">Ver</Button>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </Card>
     </AppLayout>
   );

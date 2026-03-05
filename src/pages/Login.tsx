@@ -1,101 +1,95 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { Shield, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { useApp } from '@/context/AppContext';
+import { useToast } from '@/hooks/use-toast';
+
+const quickLogins = [
+  { label: 'Entrar como Comprador', email: 'carlos@importadoradelnorte.com', icon: '🏢' },
+  { label: 'Entrar como Vendedor', email: 'wei@shenzhenelectronics.com', icon: '🌍' },
+  { label: 'Entrar como Ops Axioma', email: 'ana@axioma-finance.com', icon: '⚙️' },
+];
 
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('carlos@techpymes.mx');
-  const [password, setPassword] = useState('password123');
-  const [showPassword, setShowPassword] = useState(false);
+  const { login } = useApp();
+  const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = (e?: React.FormEvent, overrideEmail?: string) => {
+    e?.preventDefault();
     setLoading(true);
+    const loginEmail = overrideEmail || email;
+    const loginPassword = overrideEmail ? 'demo123' : password;
+
     setTimeout(() => {
-      navigate('/dashboard');
+      const success = login(loginEmail, loginPassword);
+      if (success) {
+        const user = [
+          { email: 'carlos@importadoradelnorte.com', role: 'BUYER' },
+          { email: 'wei@shenzhenelectronics.com', role: 'SELLER' },
+          { email: 'ana@axioma-finance.com', role: 'OPS' },
+        ].find(u => u.email === loginEmail);
+
+        if (user?.role === 'OPS') navigate('/ops');
+        else if (user?.role === 'SELLER') navigate('/vendor/seller-1');
+        else navigate('/dashboard');
+      } else {
+        toast({ title: 'Error de acceso', description: 'Credenciales incorrectas', variant: 'destructive' });
+      }
+      setLoading(false);
     }, 800);
   };
 
   return (
-    <div className="min-h-screen gradient-hero flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background mesh */}
-      <div className="absolute inset-0 gradient-mesh" />
-      
-      {/* Decorative circles */}
-      <div className="absolute top-1/4 -left-32 w-64 h-64 rounded-full bg-accent/5 blur-3xl" />
-      <div className="absolute bottom-1/4 -right-32 w-96 h-96 rounded-full bg-accent/5 blur-3xl" />
-
-      <div className="w-full max-w-sm animate-fade-in relative z-10">
-        {/* Logo */}
-        <div className="text-center mb-10">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/15 border border-accent/20 mb-5 shadow-glow">
+    <div className="min-h-screen gradient-hero flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/20 mb-4">
             <Shield className="h-8 w-8 text-gold" />
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight">
             Axioma <span className="text-gold">Escrow</span>
           </h1>
-          <p className="text-sm text-white/40 mt-2">Plataforma de escrow condicional</p>
+          <p className="text-white/50 text-sm mt-2">Garantías comerciales internacionales</p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleLogin} className="glass-dark rounded-2xl p-7 border border-white/10 space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium text-white/70">Correo electrónico</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="tu@empresa.mx"
-              required
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/25 focus:border-accent/50 rounded-xl h-11"
-            />
-          </div>
+        <Card className="shadow-card-hover">
+          <CardContent className="p-6">
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label>Correo electrónico</Label>
+                <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@empresa.com" className="h-11" />
+              </div>
+              <div className="space-y-2">
+                <Label>Contraseña</Label>
+                <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="h-11" />
+              </div>
+              <Button type="submit" disabled={loading} className="w-full gradient-gold text-white font-semibold h-11 hover:opacity-90">
+                {loading ? 'Ingresando...' : <><LogIn className="h-4 w-4 mr-2" /> Iniciar sesión</>}
+              </Button>
+            </form>
 
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-medium text-white/70">Contraseña</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/25 focus:border-accent/50 rounded-xl h-11"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
+            <div className="mt-6 pt-6 border-t border-border">
+              <p className="text-xs text-muted-foreground text-center mb-3">Acceso rápido para demo</p>
+              <div className="space-y-2">
+                {quickLogins.map(q => (
+                  <Button key={q.email} variant="outline" className="w-full justify-start text-sm h-10" onClick={() => handleLogin(undefined, q.email)} disabled={loading}>
+                    <span className="mr-2">{q.icon}</span> {q.label}
+                  </Button>
+                ))}
+              </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          <Button
-            type="submit"
-            className="w-full gradient-gold text-white font-semibold hover:opacity-90 transition-all rounded-xl h-11 shadow-glow"
-            disabled={loading}
-          >
-            {loading ? 'Iniciando sesión...' : (
-              <>Iniciar sesión <ArrowRight className="h-4 w-4 ml-1" /></>
-            )}
-          </Button>
-
-          <p className="text-xs text-center text-white/30">
-            Demo: usa las credenciales precargadas
-          </p>
-        </form>
-
-        <p className="text-center text-xs text-white/20 mt-8">
-          © 2025 Axioma Finance. Todos los derechos reservados.
-        </p>
+        <p className="text-center text-white/30 text-xs mt-6">© 2024 Axioma Finance S.A. de C.V.</p>
       </div>
     </div>
   );
